@@ -1,0 +1,1998 @@
+<html lang="zh-CN"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D打印生态平台(邹先生) - 设备共享降门槛，教培赋能拓需求</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GSAP 动画库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+        
+        :root {
+            --primary-color: #1e88e5;
+            --secondary-color: #ff8a65;
+            --dark-blue: #0d47a1;
+            --light-orange: #ffab91;
+        }
+        
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            scroll-behavior: smooth;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-blue));
+        }
+        
+        .gradient-text {
+            background: linear-gradient(90deg, var(--primary-color), var(--dark-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .orange-gradient-bg {
+            background: linear-gradient(135deg, var(--secondary-color), var(--light-orange));
+        }
+        
+        .orange-gradient-text {
+            background: linear-gradient(90deg, var(--secondary-color), var(--light-orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        .service-card {
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+        
+        .service-card:hover {
+            border-bottom: 3px solid var(--secondary-color);
+            transform: translateY(-5px);
+        }
+        
+        .nav-link {
+            position: relative;
+        }
+        
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -2px;
+            left: 0;
+            background-color: var(--secondary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav-link:hover::after {
+            width: 100%;
+        }
+        
+        .active-nav::after {
+            width: 100%;
+        }
+        
+        /* 3D打印效果动画 */
+        @keyframes print3d {
+            0% {
+                transform: scaleY(0);
+                transform-origin: bottom;
+                opacity: 0;
+            }
+            50% {
+                transform: scaleY(1);
+                transform-origin: bottom;
+                opacity: 0.5;
+            }
+            100% {
+                transform: scaleY(1);
+                transform-origin: bottom;
+                opacity: 1;
+            }
+        }
+        
+        .print-animation {
+            animation: print3d 2s ease-in-out forwards;
+        }
+        
+        /* 轮播图样式 */
+        .carousel {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .carousel-inner {
+            display: flex;
+            transition: transform 0.5s ease;
+        }
+        
+        .carousel-item {
+            min-width: 100%;
+        }
+        
+        /* 3D模型容器 */
+        #model-container {
+            width: 100%;
+            height: 400px;
+            background-color: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        /* 响应式调整 */
+        @media (max-width: 768px) {
+            .desktop-menu {
+                display: none;
+            }
+            
+            .mobile-menu {
+                display: block;
+            }
+            
+            #model-container {
+                height: 300px;
+            }
+        }
+        
+        @media (min-width: 769px) {
+            .desktop-menu {
+                display: flex;
+            }
+            
+            .mobile-menu {
+                display: none;
+            }
+        }
+        
+        /* 滚动动画 */
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* 创意作品卡片 */
+        .creative-card {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .creative-overlay {
+            position: absolute;
+            bottom: -100%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1.5rem;
+            transition: bottom 0.3s ease;
+        }
+        
+        .creative-card:hover .creative-overlay {
+            bottom: 0;
+        }
+        
+        /* 加载动画 */
+        .loader {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top: 4px solid var(--secondary-color);
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 导航栏 -->
+    <nav class="bg-white shadow-md fixed w-full z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center">
+                    <div class="text-2xl font-bold gradient-text">邹先生3D打印生态平台</div>
+                </div>
+                
+                <!-- 桌面端菜单 -->
+                <div class="desktop-menu items-center space-x-8">
+                    <a href="#home" class="nav-link active-nav text-gray-700 hover:text-blue-600 font-medium">首页</a>
+                    <a href="#services" class="nav-link text-gray-700 hover:text-blue-600 font-medium">服务板块</a>
+                    <a href="#creative" class="nav-link text-gray-700 hover:text-blue-600 font-medium">创意生态</a>
+                    <a href="#about" class="nav-link text-gray-700 hover:text-blue-600 font-medium">关于我们</a>
+                    <a href="#contact" class="nav-link text-gray-700 hover:text-blue-600 font-medium">联系我们</a>
+                    <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center">
+                        <i class="fas fa-calendar-check mr-2"></i> 预约服务
+                    </button>
+                </div>
+                
+                <!-- 移动端菜单按钮 -->
+                <div class="mobile-menu">
+                    <button id="menu-toggle" class="text-gray-700 focus:outline-none">
+                        <i class="fas fa-bars text-2xl"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 移动端下拉菜单 -->
+            <div id="mobile-dropdown" class="hidden pt-4 pb-2">
+                <a href="#home" class="block py-2 text-gray-700 hover:text-blue-600">首页</a>
+                <a href="#services" class="block py-2 text-gray-700 hover:text-blue-600">服务板块</a>
+                <a href="#creative" class="block py-2 text-gray-700 hover:text-blue-600">创意生态</a>
+                <a href="#about" class="block py-2 text-gray-700 hover:text-blue-600">关于我们</a>
+                <a href="#contact" class="block py-2 text-gray-700 hover:text-blue-600">联系我们</a>
+                <button class="mt-2 w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                    <i class="fas fa-calendar-check mr-2"></i> 预约服务
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 首页 -->
+    <section id="home" class="pt-24 pb-16">
+        <!-- 顶部轮播区 -->
+        <div class="carousel mb-16">
+            <div class="carousel-inner">
+                <div class="carousel-item relative">
+                    <div class="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0">
+                            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">设备共享降门槛</h1>
+                            <h2 class="text-3xl md:text-4xl font-bold mb-6 orange-gradient-text">教培赋能拓需求</h2>
+                            <p class="text-lg text-gray-700 mb-8">你的3D打印创意全链路伙伴，让创意不再受限于设备与技术</p>
+                            <div class="flex flex-wrap gap-4">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-rocket mr-2"></i> 立即体验
+                                </button>
+                                <button class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-play-circle mr-2"></i> 观看介绍
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md:w-1/2">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2a49feeda5b94b839b79c96f1e16cc71~tplv-a9rns2rl98-image.image?rcl=202511261307147EAC7F6CEF9432D37193&amp;rk3s=8e244e95&amp;rrcfp=f06b921b&amp;x-expires=1766725676&amp;x-signature=3KD%2BnhMAYIUOr6zrnNqEdntQrjg%3D" alt="3D打印生态系统" class="rounded-lg shadow-xl w-full">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel-item relative">
+                    <div class="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0">
+                            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">专业3D打印设备</h1>
+                            <h2 class="text-3xl md:text-4xl font-bold mb-6 orange-gradient-text">按需使用无需购买</h2>
+                            <p class="text-lg text-gray-700 mb-8">从入门级到工业级，多种设备满足不同需求，按次按小时计费更经济</p>
+                            <div class="flex flex-wrap gap-4">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-calendar-alt mr-2"></i> 预约设备
+                                </button>
+                                <button class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-info-circle mr-2"></i> 了解设备
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md:w-1/2">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/VgxJyYYD_m_5fe43c36f36d18ad4fc1fc25411e1ed1_sx_147860_www1000-1000~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=QLHvQeFNcazwrvzGEzCgznJ91l0%3D" alt="3D打印设备" class="rounded-lg shadow-xl w-full">
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="carousel-item relative">
+                    <div class="container mx-auto px-4 py-16 md:py-24 flex flex-col md:flex-row items-center">
+                        <div class="md:w-1/2 mb-8 md:mb-0">
+                            <h1 class="text-4xl md:text-5xl font-bold mb-4 gradient-text">理论+实操教学</h1>
+                            <h2 class="text-3xl md:text-4xl font-bold mb-6 orange-gradient-text">快速掌握3D打印技能</h2>
+                            <p class="text-lg text-gray-700 mb-8">专业导师团队，定制化课程体系，从零基础到高级应用全覆盖</p>
+                            <div class="flex flex-wrap gap-4">
+                                <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-book mr-2"></i> 浏览课程
+                                </button>
+                                <button class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-3 px-6 rounded-md transition duration-300 flex items-center">
+                                    <i class="fas fa-users mr-2"></i> 团体定制
+                                </button>
+                            </div>
+                        </div>
+                        <div class="md:w-1/2">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/518733123b3842d9b6c248278211b85f~tplv-a9rns2rl98-image.image?rcl=202511261307147EAC7F6CEF9432D37193&amp;rk3s=8e244e95&amp;rrcfp=f06b921b&amp;x-expires=1766725679&amp;x-signature=Ysh2a9qbSAz%2FUlyDpmKJL4uOdYw%3D" alt="3D打印教学" class="rounded-lg shadow-xl w-full">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 轮播控制按钮 -->
+            <button class="carousel-control-prev absolute top-1/2 left-4 transform -translate-y-1/2 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg focus:outline-none">
+                <i class="fas fa-chevron-left text-blue-600"></i>
+            </button>
+            <button class="carousel-control-next absolute top-1/2 right-4 transform -translate-y-1/2 bg-white rounded-full w-10 h-10 flex items-center justify-center shadow-lg focus:outline-none">
+                <i class="fas fa-chevron-right text-blue-600"></i>
+            </button>
+            
+            <!-- 轮播指示器 -->
+            <div class="carousel-indicators absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                <button class="w-3 h-3 rounded-full bg-blue-600 opacity-100"></button>
+                <button class="w-3 h-3 rounded-full bg-gray-300 opacity-50"></button>
+                <button class="w-3 h-3 rounded-full bg-gray-300 opacity-50"></button>
+            </div>
+        </div>
+        
+        <!-- 核心服务入口区 -->
+        <div class="container mx-auto px-4 mb-16">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">我们的核心服务</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                <!-- 设备按需用/租赁 -->
+                <div class="service-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="bg-blue-100 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-print text-blue-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">设备按需用/租赁</h3>
+                    <p class="text-gray-600 mb-6">门店设备随约随用，短/长期租赁灵活适配创客/企业需求</p>
+                    <a href="#services" class="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center">
+                        查看设备列表 <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 技术教培课程 -->
+                <div class="service-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="bg-orange-100 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-book-open text-orange-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">技术教培课程</h3>
+                    <p class="text-gray-600 mb-6">分人群定制课程，理论+门店实操，学会真技术</p>
+                    <a href="#services" class="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center">
+                        选适合你的课 <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 创意落地支持 -->
+                <div class="service-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="bg-green-100 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-lightbulb text-green-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">创意落地支持</h3>
+                    <p class="text-gray-600 mb-6">设计优化+设备实操，帮你把脑洞变成实物</p>
+                    <a href="#creative" class="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center">
+                        提交你的创意 <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+                
+                <!-- 创意集合平台 -->
+                <div class="service-card bg-white rounded-xl shadow-lg p-6 text-center">
+                    <div class="bg-purple-100 w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-th-large text-purple-600 text-3xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">创意集合平台</h3>
+                    <p class="text-gray-600 mb-6">展示/销售/回收创意，让想法持续产生价值</p>
+                    <a href="#creative" class="text-blue-600 hover:text-blue-800 font-medium flex items-center justify-center">
+                        进入创意平台 <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 价值亮点区 -->
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">我们的差异化优势</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- 亮点1：服务+教育双驱动 -->
+                <div class="bg-white rounded-xl shadow-lg p-8 fade-in">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-sync-alt text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">服务+教育双驱动</h3>
+                    <p class="text-gray-700">既提供设备共享（解决"用不起"），又配套教培（解决"不会用"），填补单纯共享/教培的空白</p>
+                </div>
+                
+                <!-- 亮点2：全链路创意支持 -->
+                <div class="bg-white rounded-xl shadow-lg p-8 fade-in" style="animation-delay: 0.2s;">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-route text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">全链路创意支持</h3>
+                    <p class="text-gray-700">从创意设计→技术学习→设备实操→作品落地→价值变现，覆盖3D打印全流程</p>
+                </div>
+                
+                <!-- 亮点3：多人群适配 -->
+                <div class="bg-white rounded-xl shadow-lg p-8 fade-in" style="animation-delay: 0.4s;">
+                    <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mb-6">
+                        <i class="fas fa-users text-blue-600 text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-4">多人群适配</h3>
+                    <p class="text-gray-700">不管是创客、中小企业、中小学还是兴趣爱好者，都能找到对应服务</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 服务板块 -->
+    <section id="services" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">服务板块</h2>
+            
+            <!-- 设备服务 -->
+            <div class="mb-16">
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-600 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-print text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">设备服务</h3>
+                </div>
+                
+                <!-- 设备按需用 -->
+                <div class="mb-12">
+                    <h4 class="text-xl font-bold mb-6">设备按需用（按次/按时）</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- 设备1：FDM桌面级 -->
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                            <div class="relative">
+                                <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/VgxJyYYD_m_5fe43c36f36d18ad4fc1fc25411e1ed1_sx_147860_www1000-1000~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=QLHvQeFNcazwrvzGEzCgznJ91l0%3D" alt="FDM桌面级3D打印机" class="w-full h-48 object-cover">
+                                <div class="absolute top-4 right-4 bg-blue-600 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                    入门推荐
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <h5 class="text-lg font-bold mb-3">FDM桌面级3D打印机（型号：创想三维 Ender-3 V2）</h5>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">打印精度：</h6>
+                                    <p class="text-gray-600">0.1mm</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">适用场景：</h6>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium py-1 px-2 rounded">创客原型</span>
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium py-1 px-2 rounded">中小学教学件</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">收费标准：</h6>
+                                    <ul class="text-gray-600 space-y-1">
+                                        <li class="flex items-center">
+                                            <i class="fas fa-tag text-blue-500 mr-2"></i> 按次（单次打印≤2小时）：39元
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-clock text-blue-500 mr-2"></i> 按时（每小时）：25元
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                    立即预约
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- 设备2：光固化 -->
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                            <div class="relative">
+                                <img src="https://p26-doubao-search-sign.byteimg.com/labis/image/58172dd452437eabbc75b8aebb9d0e2d~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1779697618&x-signature=FBP3ScDdyHmysfLYxHqkh%2BC5bO4%3D" alt="光固化3D打印机" class="w-full h-48 object-cover">
+                                <div class="absolute top-4 right-4 bg-orange-500 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                    高精度
+                                </div>
+                            </div>
+                            <div class="p-6">
+                                <h5 class="text-lg font-bold mb-3">光固化3D打印机（型号：Anycubic Photon Mono X）</h5>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">打印精度：</h6>
+                                    <p class="text-gray-600">0.05mm</p>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">适用场景：</h6>
+                                    <div class="flex flex-wrap gap-2">
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium py-1 px-2 rounded">精细手办</span>
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium py-1 px-2 rounded">企业精密样件</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <h6 class="font-medium text-gray-800 mb-2">收费标准：</h6>
+                                    <ul class="text-gray-600 space-y-1">
+                                        <li class="flex items-center">
+                                            <i class="fas fa-tag text-blue-500 mr-2"></i> 按次（单次打印≤3小时）：59元
+                                        </li>
+                                        <li class="flex items-center">
+                                            <i class="fas fa-clock text-blue-500 mr-2"></i> 按时（每小时）：35元
+                                        </li>
+                                    </ul>
+                                </div>
+                                
+                                <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                    立即预约
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 预约说明 -->
+                    <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                        <h5 class="font-bold text-lg mb-4">预约说明</h5>
+                        <div class="flex flex-col md:flex-row">
+                            <div class="flex-1 mb-4 md:mb-0 md:mr-4">
+                                <div class="flex items-center mb-2">
+                                    <div class="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                                        <span class="font-bold text-blue-600">1</span>
+                                    </div>
+                                    <span class="font-medium">线上选设备</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <div class="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                                        <span class="font-bold text-blue-600">2</span>
+                                    </div>
+                                    <span class="font-medium">选门店</span>
+                                </div>
+                                <div class="flex items-center mb-2">
+                                    <div class="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                                        <span class="font-bold text-blue-600">3</span>
+                                    </div>
+                                    <span class="font-medium">选时间</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <div class="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
+                                        <span class="font-bold text-blue-600">4</span>
+                                    </div>
+                                    <span class="font-medium">到店使用（含基础操作指导）</span>
+                                </div>
+                            </div>
+                            <div class="flex-1 bg-blue-50 p-4 rounded-lg">
+                                <div class="flex items-start">
+                                    <i class="fas fa-info-circle text-blue-600 mt-1 mr-3"></i>
+                                    <div>
+                                        <p class="text-sm text-gray-700">预约成功后，我们会通过短信和电话通知您确认。如需取消预约，请至少提前2小时联系客服。</p>
+                                        <p class="text-sm text-gray-700 mt-2">首次使用设备的用户可免费获得15分钟的基础操作指导。</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 设备租赁 -->
+                <div>
+                    <h4 class="text-xl font-bold mb-6">设备租赁（短/长期）</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- 短期租赁 -->
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                            <div class="bg-blue-600 text-white p-4">
+                                <h5 class="text-lg font-bold">短期租赁（周/月）</h5>
+                            </div>
+                            <div class="p-6">
+                                <div class="mb-6">
+                                    <h6 class="font-bold text-gray-800 mb-3">套餐1：FDM打印机周租</h6>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-calendar-week text-blue-600 mr-2"></i>
+                                        <span class="text-gray-700">租期：7天</span>
+                                    </div>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-box text-blue-600 mr-2"></i>
+                                        <span class="text-gray-700">包含：耗材1卷 + 基础维护指导</span>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                        <span class="text-gray-700 font-bold text-lg">299元</span>
+                                    </div>
+                                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                        选择此套餐
+                                    </button>
+                                </div>
+                                
+                                <div>
+                                    <h6 class="font-bold text-gray-800 mb-3">套餐2：光固化打印机月租</h6>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>
+                                        <span class="text-gray-700">租期：30天</span>
+                                    </div>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-box text-blue-600 mr-2"></i>
+                                        <span class="text-gray-700">包含：耗材2瓶 + 上门调试1次</span>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                        <span class="text-gray-700 font-bold text-lg">899元</span>
+                                    </div>
+                                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                        选择此套餐
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 长期租赁 -->
+                        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                            <div class="bg-orange-500 text-white p-4">
+                                <h5 class="text-lg font-bold">长期租赁（季度/年）</h5>
+                            </div>
+                            <div class="p-6">
+                                <div class="mb-6">
+                                    <h6 class="font-bold text-gray-800 mb-3">套餐1：FDM打印机季度租</h6>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-calendar-alt text-orange-600 mr-2"></i>
+                                        <span class="text-gray-700">租期：90天</span>
+                                    </div>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-box text-orange-600 mr-2"></i>
+                                        <span class="text-gray-700">包含：耗材3卷 + 每月维护1次</span>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                        <span class="text-gray-700 font-bold text-lg">799元</span>
+                                    </div>
+                                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                        选择此套餐
+                                    </button>
+                                </div>
+                                
+                                <div>
+                                    <h6 class="font-bold text-gray-800 mb-3">套餐2：企业定制年租</h6>
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-building text-orange-600 mr-2"></i>
+                                        <span class="text-gray-700">按需匹配设备数量 + 专属技术支持</span>
+                                    </div>
+                                    <div class="flex items-center mb-4">
+                                        <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                        <span class="text-gray-700">联系客服报价</span>
+                                    </div>
+                                    <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                        联系客服
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 租赁权益 -->
+                    <div class="mt-8 bg-white p-6 rounded-xl shadow-md">
+                        <h5 class="font-bold text-lg mb-4">租赁权益</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex items-start">
+                                <div class="bg-green-100 rounded-full p-2 mr-3">
+                                    <i class="fas fa-graduation-cap text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h6 class="font-medium">免费入门课程</h6>
+                                    <p class="text-sm text-gray-600">提供设备操作入门课1节，帮助快速上手</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-green-100 rounded-full p-2 mr-3">
+                                    <i class="fas fa-tools text-green-600"></i>
+                                </div>
+                                <div>
+                                    <h6 class="font-medium">免费维修服务</h6>
+                                    <p class="text-sm text-gray-600">非人为损坏免费维修，让您使用无忧</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教培课程 -->
+            <div>
+                <div class="flex items-center mb-8">
+                    <div class="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-chalkboard-teacher text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">教培课程</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- 创客入门课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p3-doubao-search-sign.byteimg.com/labis/3eadf1c603c60802358d6840f78f0cf3~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1779697618&x-signature=Lte6wo41lhpCur1AVqAGJ7yHE5k%3D" alt="创客入门课" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 right-4 bg-green-500 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                入门推荐
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-bold mb-3">创客入门课</h4>
+                            
+                            <div class="mb-3">
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">适合人群：0基础个人创客</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-clock text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">时长：2天（12课时，含4课时实操）</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                    <span class="text-gray-700 font-bold">299元/人</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">课程内容：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>理论：3D打印基础原理、常用建模软件（如Tinkercad）入门</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>实操：门店FDM打印机操作、简单模型打印调试</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">配套服务：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-file-alt text-blue-500 mr-2"></i>
+                                        <span>课程教材</span>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-ticket-alt text-blue-500 mr-2"></i>
+                                        <span>1次免费设备使用券</span>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-comments text-blue-500 mr-2"></i>
+                                        <span>课后1个月线上答疑群</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                立即报名
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 企业技术进阶课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p3-doubao-search-sign.byteimg.com/ecom-shop-material/png_m_77d9a4962ed743cc121d855a9ff9aaaa_sx_2090600_www1328-1328~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1779697618&x-signature=5TFIo3AaQv9ovZgaiM%2F4Zky68w4%3D" alt="企业技术进阶课" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 right-4 bg-blue-600 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                企业推荐
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-bold mb-3">企业技术进阶课</h4>
+                            
+                            <div class="mb-3">
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">适合人群：中小企业产品/设计人员</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-clock text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">时长：3天（18课时，含8课时实操）</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                    <span class="text-gray-700 font-bold">599元/人</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">课程内容：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>理论：3D打印材料选型、复杂模型优化（减少打印失败率）</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>实操：光固化打印机精细打印、小批量打样流程</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">配套服务：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-file-alt text-blue-500 mr-2"></i>
+                                        <span>企业专属打样方案1份</span>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-ticket-alt text-blue-500 mr-2"></i>
+                                        <span>1次免费设备租赁体验（周租）</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                立即报名
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 中小学科创课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p3-doubao-search-sign.byteimg.com/labis/b8d4a8a97a3f8e8d6230cdaa7bd0096c~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1779697618&x-signature=ahaUntZsO%2BvMz3Z5Q4kYZfBWS%2F8%3D" alt="中小学科创课" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 right-4 bg-purple-500 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                学校推荐
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-bold mb-3">中小学科创课</h4>
+                            
+                            <div class="mb-3">
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">适合人群：中小学科创老师/学生社团</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-clock text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">时长：1天（6课时，含4课时实操）</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                    <span class="text-gray-700 font-bold">199元/人</span>
+                                    <span class="text-green-600 text-sm ml-2">（学校团报享8折）</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">课程内容：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>理论：3D打印与科创赛事（如青少年科技创新大赛）结合</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>实操：简易创意作品（如笔筒、小玩具）打印全流程</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">配套服务：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-file-alt text-blue-500 mr-2"></i>
+                                        <span>科创赛事作品指导模板</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                立即报名
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 兴趣爱好者提升课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/image/b2e30fc03f7e2ab12a615d38e8a7d2bb~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&x-expires=1779697618&x-signature=PzSklLzR%2FCRxr%2BSuEliAUq4ehjM%3D" alt="兴趣爱好者提升课" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 right-4 bg-orange-500 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                进阶课程
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-lg font-bold mb-3">兴趣爱好者提升课</h4>
+                            
+                            <div class="mb-3">
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-user text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">适合人群：有基础的3D打印爱好者</span>
+                                </div>
+                                <div class="flex items-center mb-1">
+                                    <i class="fas fa-clock text-blue-600 mr-2"></i>
+                                    <span class="text-gray-700">时长：2天（12课时，含6课时实操）</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-yuan-sign text-red-600 mr-2"></i>
+                                    <span class="text-gray-700 font-bold">399元/人</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">课程内容：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>理论：个性化模型设计技巧、特殊材料（如柔性材料）打印</span>
+                                    </li>
+                                    <li class="flex items-start">
+                                        <i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i>
+                                        <span>实操：复杂手办/文创产品打印、后期打磨处理</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">配套服务：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-box text-blue-500 mr-2"></i>
+                                        <span>特殊耗材体验装1份</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300">
+                                立即报名
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> 专业级：Ultimaker S5
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                                <i class="fas fa-calendar-alt mr-2"></i> 立即预约
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 设备租赁 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/jpeg_m_b36d625d7a7ca9f4ada45054d9287051_sx_66998_www800-800~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=bDuW8cu3OYl%2BeaTNRAjSt54pF%2BQ%3D" alt="设备租赁" class="w-full h-48 object-cover">
+                            <div class="absolute top-4 right-4 bg-orange-500 text-white text-sm font-medium py-1 px-3 rounded-full">
+                                长期合作
+                            </div>
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-3">设备租赁</h4>
+                            <p class="text-gray-600 mb-4">短/长期租赁设备，适合需要持续使用但不想购买的用户</p>
+                            
+                            <div class="mb-4">
+                                <h5 class="font-medium text-gray-800 mb-2">适用场景：</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="bg-orange-100 text-orange-800 text-xs font-medium py-1 px-2 rounded">项目开发</span>
+                                    <span class="bg-orange-100 text-orange-800 text-xs font-medium py-1 px-2 rounded">课程教学</span>
+                                    <span class="bg-orange-100 text-orange-800 text-xs font-medium py-1 px-2 rounded">小批量生产</span>
+                                    <span class="bg-orange-100 text-orange-800 text-xs font-medium py-1 px-2 rounded">展览展示</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-6">
+                                <h5 class="font-medium text-gray-800 mb-2">租赁方案：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> 短期租赁：1-4周
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> 中期租赁：1-3个月
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> 长期租赁：3个月以上
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                                <i class="fas fa-file-signature mr-2"></i> 租赁咨询
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 设备展示 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/ZmEdAoQb_m_3d0a15e4014b351753e465317b5d5516_sx_274491_www800-800~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=cZcl2X0NXmA6HTgZVVEIDOVP9xs%3D" alt="设备展示" class="w-full h-48 object-cover">
+                        </div>
+                        <div class="p-6">
+                            <h4 class="text-xl font-bold mb-3">设备展示</h4>
+                            <p class="text-gray-600 mb-4">查看我们提供的所有3D打印设备详细参数和适用场景</p>
+                            
+                            <div class="mb-6">
+                                <h5 class="font-medium text-gray-800 mb-2">设备类型：</h5>
+                                <ul class="text-gray-600 text-sm space-y-1">
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> FDM打印机（熔融沉积）
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> SLA打印机（光固化）
+                                    </li>
+                                    <li class="flex items-center">
+                                        <i class="fas fa-check text-green-500 mr-2"></i> SLS打印机（选择性激光烧结）
+                                    </li>
+                                </ul>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                                <i class="fas fa-info-circle mr-2"></i> 查看设备
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 教培课程 -->
+            <div>
+                <div class="flex items-center mb-8">
+                    <div class="bg-orange-500 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-chalkboard-teacher text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">教培课程</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    <!-- 创客入门课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/1f545d1296433e228cd1228bac7e8995~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=IiqrymBgqEwm5u1Xzn8bhRWK%2Bp8%3D" alt="创客入门课" class="w-full h-40 object-cover">
+                            <div class="absolute top-4 right-4 bg-green-500 text-white text-xs font-medium py-1 px-2 rounded">
+                                入门级
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="text-lg font-bold mb-2">创客入门课</h4>
+                            <p class="text-gray-600 text-sm mb-4">适合零基础入门，了解3D打印基础知识和简单操作</p>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">8课时</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">小班教学</span>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 企业技术进阶课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p3-doubao-search-sign.byteimg.com/pgc-image/3c3a3229ec924d4eb10581eba2310d2e~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=aURR0G8rbkvzTgz0LvuzgOBypWU%3D" alt="企业技术进阶课" class="w-full h-40 object-cover">
+                            <div class="absolute top-4 right-4 bg-blue-600 text-white text-xs font-medium py-1 px-2 rounded">
+                                进阶级
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="text-lg font-bold mb-2">企业技术进阶课</h4>
+                            <p class="text-gray-600 text-sm mb-4">针对企业用户，提升产品设计和快速原型制作能力</p>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">16课时</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">可定制</span>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 中小学科创课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/518733123b3842d9b6c248278211b85f~tplv-a9rns2rl98-image.image?rcl=202511261307147EAC7F6CEF9432D37193&amp;rk3s=8e244e95&amp;rrcfp=f06b921b&amp;x-expires=1766725679&amp;x-signature=Ysh2a9qbSAz%2FUlyDpmKJL4uOdYw%3D" alt="中小学科创课" class="w-full h-40 object-cover">
+                            <div class="absolute top-4 right-4 bg-purple-500 text-white text-xs font-medium py-1 px-2 rounded">
+                                特色课程
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="text-lg font-bold mb-2">中小学科创课</h4>
+                            <p class="text-gray-600 text-sm mb-4">激发青少年创新思维，培养STEM素养和实践能力</p>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">12课时</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">班级教学</span>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- 兴趣爱好者提升课 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden card-hover">
+                        <div class="relative">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/image/6ad9d398cfce3683f66beda7026689d6~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=m2ve3BOej3mtxDCBrmkiARCL9ZA%3D" alt="兴趣爱好者提升课" class="w-full h-40 object-cover">
+                            <div class="absolute top-4 right-4 bg-orange-500 text-white text-xs font-medium py-1 px-2 rounded">
+                                兴趣班
+                            </div>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="text-lg font-bold mb-2">兴趣爱好者提升课</h4>
+                            <p class="text-gray-600 text-sm mb-4">针对有一定基础的爱好者，深入学习高级打印技术</p>
+                            
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center">
+                                    <i class="fas fa-clock text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">10课时</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <i class="fas fa-users text-blue-600 mr-1"></i>
+                                    <span class="text-gray-600 text-sm">小组教学</span>
+                                </div>
+                            </div>
+                            
+                            <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 text-sm">
+                                查看详情
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 text-center">
+                    <button class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-2 px-6 rounded-md transition duration-300 inline-flex items-center">
+                        <i class="fas fa-book-open mr-2"></i> 查看全部课程
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 创意生态板块 -->
+    <section id="creative" class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">创意生态</h2>
+            
+            <!-- 创意落地 -->
+            <div class="mb-16">
+                <div class="flex items-center mb-8">
+                    <div class="bg-green-500 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-lightbulb text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">创意落地</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                    <div>
+                        <p class="text-gray-700 mb-6">我们提供全方位的创意落地支持，帮助您将创意转化为实物。从设计优化到设备实操，专业团队全程指导，让您的创意不再停留在想法阶段。</p>
+                        
+                        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                            <h4 class="text-xl font-bold mb-4">创意落地流程</h4>
+                            
+                            <div class="relative">
+                                <!-- 流程线 -->
+                                <div class="absolute left-4 top-0 bottom-0 w-0.5 bg-blue-200"></div>
+                                
+                                <!-- 步骤1 -->
+                                <div class="relative pl-12 pb-6">
+                                    <div class="absolute left-0 top-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">1</div>
+                                    <h5 class="font-bold text-lg mb-1">创意咨询</h5>
+                                    <p class="text-gray-600">与专业顾问沟通创意想法，获取初步可行性评估</p>
+                                </div>
+                                
+                                <!-- 步骤2 -->
+                                <div class="relative pl-12 pb-6">
+                                    <div class="absolute left-0 top-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">2</div>
+                                    <h5 class="font-bold text-lg mb-1">设计优化</h5>
+                                    <p class="text-gray-600">专业设计师协助优化3D模型，确保打印可行性</p>
+                                </div>
+                                
+                                <!-- 步骤3 -->
+                                <div class="relative pl-12 pb-6">
+                                    <div class="absolute left-0 top-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">3</div>
+                                    <h5 class="font-bold text-lg mb-1">材料选择</h5>
+                                    <p class="text-gray-600">根据需求选择合适的打印材料，平衡效果与成本</p>
+                                </div>
+                                
+                                <!-- 步骤4 -->
+                                <div class="relative pl-12">
+                                    <div class="absolute left-0 top-1 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold">4</div>
+                                    <h5 class="font-bold text-lg mb-1">打印制作</h5>
+                                    <p class="text-gray-600">使用专业设备进行打印，全程质量监控</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <button class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-md transition duration-300 inline-flex items-center">
+                            <i class="fas fa-paper-plane mr-2"></i> 提交创意
+                        </button>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="creative-card rounded-lg overflow-hidden shadow-lg">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/qMddGLIP_m_20f1611056634dc6ff8b6b1ad0a6b06a_sx_4557803_www1803-1803~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=sKYVXM8D5a%2FHVeL2dLeYD9SbnFc%3D" alt="3D打印创意作品" class="w-full h-full object-cover">
+                            <div class="creative-overlay">
+                                <h4 class="text-white font-bold mb-1">巨嘴鸟关节玩具</h4>
+                                <p class="text-gray-200 text-sm">可活动关节设计，环保材料制作</p>
+                            </div>
+                        </div>
+                        <div class="creative-card rounded-lg overflow-hidden shadow-lg">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/jpeg_m_d116202679b9725941a2901348974328_sx_223570_www2000-2000~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=tJVCZzG8tSYGnUVNgWiqD4CSoww%3D" alt="3D打印创意作品" class="w-full h-full object-cover">
+                            <div class="creative-overlay">
+                                <h4 class="text-white font-bold mb-1">渐变机器人模型</h4>
+                                <p class="text-gray-200 text-sm">三色渐变效果，家居装饰摆件</p>
+                            </div>
+                        </div>
+                        <div class="creative-card rounded-lg overflow-hidden shadow-lg">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/png_m_4d43b752386b6bea642fc94f3b3088a3_sx_817702_www800-800~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=hs%2FTB%2BI8mHqpl429MYGZqavoGno%3D" alt="3D打印创意作品" class="w-full h-full object-cover">
+                            <div class="creative-overlay">
+                                <h4 class="text-white font-bold mb-1">不死鸟摆件</h4>
+                                <p class="text-gray-200 text-sm">双拼色设计，办公桌面装饰</p>
+                            </div>
+                        </div>
+                        <div class="creative-card rounded-lg overflow-hidden shadow-lg">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/image/8b5f6c009dbdf80b58a39c3e050861b3~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=74SGRRKmErvrtXBBkWgulg7Q52Y%3D" alt="3D打印创意作品" class="w-full h-full object-cover">
+                            <div class="creative-overlay">
+                                <h4 class="text-white font-bold mb-1">建筑废墟模型</h4>
+                                <p class="text-gray-200 text-sm">微缩场景，高达模型配景</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 创意集合平台 -->
+            <div class="mb-16">
+                <div class="flex items-center mb-8">
+                    <div class="bg-purple-500 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-cubes text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">创意集合平台</h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- 创意设计上传展示 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-cloud-upload-alt text-purple-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-center mb-4">创意设计上传展示</h4>
+                        <p class="text-gray-600 text-center mb-6">上传您的3D设计作品，展示创意才华，获取社区反馈</p>
+                        <button class="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-upload mr-2"></i> 上传作品
+                        </button>
+                    </div>
+                    
+                    <!-- 创意作品销售 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="bg-blue-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-shopping-cart text-blue-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-center mb-4">创意作品销售</h4>
+                        <p class="text-gray-600 text-center mb-6">通过平台撮合，将您的创意设计或打印作品变现</p>
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-store mr-2"></i> 开设店铺
+                        </button>
+                    </div>
+                    
+                    <!-- 创意回收 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 card-hover">
+                        <div class="bg-green-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6">
+                            <i class="fas fa-recycle text-green-600 text-2xl"></i>
+                        </div>
+                        <h4 class="text-xl font-bold text-center mb-4">创意回收</h4>
+                        <p class="text-gray-600 text-center mb-6">闲置作品/设计二次改造，环保又创意，赋予旧物新生命</p>
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-exchange-alt mr-2"></i> 了解回收
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 创意作品展示 -->
+                <div class="mt-12">
+                    <h4 class="text-xl font-bold mb-6">热门创意作品</h4>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                        <!-- 作品1 -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/png_m_c16afebf869723e309e84d77863c6727_sx_817914_www800-800~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=9hDijZ7q0D%2F9d2lU6l7nIJj66do%3D" alt="创意作品" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h5 class="font-bold mb-1">双拼色不死鸟摆件</h5>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600 text-sm">设计师：创意工坊</span>
+                                    <span class="text-blue-600 font-medium">¥128</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 作品2 -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/image/6ad9d398cfce3683f66beda7026689d6~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=m2ve3BOej3mtxDCBrmkiARCL9ZA%3D" alt="创意作品" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h5 class="font-bold mb-1">机场场景模型套装</h5>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600 text-sm">设计师：模型达人</span>
+                                    <span class="text-blue-600 font-medium">¥258</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 作品3 -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/jpeg_m_d116202679b9725941a2901348974328_sx_223570_www2000-2000~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=tJVCZzG8tSYGnUVNgWiqD4CSoww%3D" alt="创意作品" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h5 class="font-bold mb-1">渐变机器人摆件</h5>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600 text-sm">设计师：未来科技</span>
+                                    <span class="text-blue-600 font-medium">¥168</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 作品4 -->
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <img src="https://p11-doubao-search-sign.byteimg.com/labis/image/8b5f6c009dbdf80b58a39c3e050861b3~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=74SGRRKmErvrtXBBkWgulg7Q52Y%3D" alt="创意作品" class="w-full h-48 object-cover">
+                            <div class="p-4">
+                                <h5 class="font-bold mb-1">建筑废墟场景模型</h5>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-gray-600 text-sm">设计师：微缩世界</span>
+                                    <span class="text-blue-600 font-medium">¥198</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-8 text-center">
+                        <button class="border-2 border-blue-600 text-blue-600 hover:bg-blue-50 font-medium py-2 px-6 rounded-md transition duration-300 inline-flex items-center">
+                            <i class="fas fa-th-large mr-2"></i> 浏览更多作品
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 设计需求对接 -->
+            <div>
+                <div class="flex items-center mb-8">
+                    <div class="bg-blue-600 w-10 h-10 rounded-full flex items-center justify-center mr-4">
+                        <i class="fas fa-handshake text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold">设计需求对接</h3>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <div class="grid grid-cols-1 lg:grid-cols-2">
+                        <div class="p-8">
+                            <h4 class="text-xl font-bold mb-4">发布您的3D打印需求</h4>
+                            <p class="text-gray-600 mb-6">无论您是企业还是个人，只需发布您的3D打印设计需求，我们将为您匹配最合适的技术/设计资源</p>
+                            
+                            <form class="space-y-4">
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2" for="name">您的姓名</label>
+                                    <input type="text" id="name" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2" for="email">联系方式</label>
+                                    <input type="email" id="email" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2" for="需求类型">需求类型</label>
+                                    <select id="需求类型" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                        <option>产品原型设计</option>
+                                        <option>工业零件制作</option>
+                                        <option>创意艺术品定制</option>
+                                        <option>教学模型开发</option>
+                                        <option>其他需求</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-gray-700 font-medium mb-2" for="需求描述">需求描述</label>
+                                    <textarea id="需求描述" rows="4" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                                </div>
+                                
+                                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                                    <i class="fas fa-paper-plane mr-2"></i> 提交需求
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <div class="bg-gray-100 p-8 flex flex-col justify-center">
+                            <h4 class="text-xl font-bold mb-6">为什么选择我们的需求对接服务</h4>
+                            
+                            <div class="space-y-6">
+                                <div class="flex">
+                                    <div class="bg-blue-100 rounded-full p-3 mr-4 flex-shrink-0">
+                                        <i class="fas fa-user-tie text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold mb-1">专业团队</h5>
+                                        <p class="text-gray-600">我们拥有一支经验丰富的设计师和工程师团队，确保高质量交付</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="bg-blue-100 rounded-full p-3 mr-4 flex-shrink-0">
+                                        <i class="fas fa-bolt text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold mb-1">高效匹配</h5>
+                                        <p class="text-gray-600">智能算法快速匹配最合适的资源，节省您的时间和精力</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="bg-blue-100 rounded-full p-3 mr-4 flex-shrink-0">
+                                        <i class="fas fa-shield-alt text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold mb-1">质量保障</h5>
+                                        <p class="text-gray-600">严格的质量控制流程，确保每个项目都能满足您的期望</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="flex">
+                                    <div class="bg-blue-100 rounded-full p-3 mr-4 flex-shrink-0">
+                                        <i class="fas fa-dollar-sign text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <h5 class="font-bold mb-1">透明定价</h5>
+                                        <p class="text-gray-600">清晰的价格结构，无隐藏费用，让您的预算可控</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 关于我们 -->
+    <section id="about" class="py-16 bg-gray-100">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">关于我们</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h3 class="text-2xl font-bold mb-6">平台定位</h3>
+                    <p class="text-gray-700 mb-6">我们是一家专注于"服务+教育"双驱动的3D打印生态平台，致力于为个人创客、中小企业、中小学和3D打印兴趣群体提供全方位的3D打印解决方案。</p>
+                    
+                    <h3 class="text-2xl font-bold mb-6">核心优势</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                                <i class="fas fa-check text-blue-600"></i>
+                            </div>
+                            <p class="text-gray-700"><span class="font-bold">设备资源丰富：</span>拥有多种类型和规格的3D打印设备，满足不同用户的多样化需求</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                                <i class="fas fa-check text-blue-600"></i>
+                            </div>
+                            <p class="text-gray-700"><span class="font-bold">专业师资团队：</span>由行业资深专家组成的教学团队，提供专业的技术指导和培训</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                                <i class="fas fa-check text-blue-600"></i>
+                            </div>
+                            <p class="text-gray-700"><span class="font-bold">全链路服务：</span>从创意咨询到设计优化，再到打印制作，提供一站式全流程服务</p>
+                        </div>
+                        
+                        <div class="flex items-start">
+                            <div class="bg-blue-100 rounded-full p-2 mr-3 mt-1">
+                                <i class="fas fa-check text-blue-600"></i>
+                            </div>
+                            <p class="text-gray-700"><span class="font-bold">创新生态系统：</span>构建创意展示、交易和回收的闭环生态，促进3D打印技术的普及和应用</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/2a49feeda5b94b839b79c96f1e16cc71~tplv-a9rns2rl98-image.image?rcl=202511261307147EAC7F6CEF9432D37193&amp;rk3s=8e244e95&amp;rrcfp=f06b921b&amp;x-expires=1766725676&amp;x-signature=3KD%2BnhMAYIUOr6zrnNqEdntQrjg%3D" alt="3D打印生态系统" class="rounded-xl shadow-xl w-full">
+                    
+                    <!-- 3D模型展示容器 -->
+                    <div id="model-container" class="mt-8"></div>
+                </div>
+            </div>
+            
+            <!-- 团队信息 -->
+            <div class="mt-16">
+                <h3 class="text-2xl font-bold text-center mb-8">我们的团队</h3>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8">
+                    <!-- 团队成员1 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/code_assistant/c8eeee9e82a7474d87889a42106a6252~tplv-a9rns2rl98-image.image?rcl=20251126143212ECC562D0DDD2546D227B&amp;rk3s=8e244e95&amp;rrcfp=e75484ac&amp;x-expires=1764743533&amp;x-signature=vcaqPZUaXZ9KbmfCGezXRo5UyAc%3D" alt="团队成员" class="w-full h-full object-cover">
+                        </div>
+                        <h4 class="text-lg font-bold mb-1">邹太涛</h4>
+                        <p class="text-blue-600 mb-3">创始人 &amp; CEO</p>
+                        <p class="text-gray-600 text-sm">3D打印行业资深专家，拥有10年行业经验</p>
+                    </div>
+                    
+                    <!-- 团队成员2 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
+                            <img src="https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/518733123b3842d9b6c248278211b85f~tplv-a9rns2rl98-image.image?rcl=202511261307147EAC7F6CEF9432D37193&amp;rk3s=8e244e95&amp;rrcfp=f06b921b&amp;x-expires=1766725679&amp;x-signature=Ysh2a9qbSAz%2FUlyDpmKJL4uOdYw%3D" alt="团队成员" class="w-full h-full object-cover">
+                        </div>
+                        <h4 class="text-lg font-bold mb-1">曾引</h4>
+                        <p class="text-blue-600 mb-3">技术总监</p>
+                        <p class="text-gray-600 text-sm">3D打印技术专家，曾主导多个大型3D打印项目</p>
+                    </div>
+                    
+                    <!-- 团队成员3 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/VgxJyYYD_m_5fe43c36f36d18ad4fc1fc25411e1ed1_sx_147860_www1000-1000~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=QLHvQeFNcazwrvzGEzCgznJ91l0%3D" alt="团队成员" class="w-full h-full object-cover">
+                        </div>
+                        <h4 class="text-lg font-bold mb-1">王强</h4>
+                        <p class="text-blue-600 mb-3">教育总监</p>
+                        <p class="text-gray-600 text-sm">STEM教育专家，专注于3D打印教育课程开发</p>
+                    </div>
+                    
+                    <!-- 团队成员4 -->
+                    <div class="bg-white rounded-xl shadow-lg p-6 text-center">
+                        <div class="w-24 h-24 rounded-full bg-gray-300 mx-auto mb-4 overflow-hidden">
+                            <img src="https://p26-doubao-search-sign.byteimg.com/ecom-shop-material/jpeg_m_b36d625d7a7ca9f4ada45054d9287051_sx_66998_www800-800~tplv-be4g95zd3a-image.jpeg?rk3s=542c0f93&amp;x-expires=1779685653&amp;x-signature=bDuW8cu3OYl%2BeaTNRAjSt54pF%2BQ%3D" alt="团队成员" class="w-full h-full object-cover">
+                        </div>
+                        <h4 class="text-lg font-bold mb-1">陈静</h4>
+                        <p class="text-blue-600 mb-3">设计总监</p>
+                        <p class="text-gray-600 text-sm">资深产品设计师，擅长3D模型设计和优化</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 联系我们 -->
+    <section id="contact" class="py-16">
+        <div class="container mx-auto px-4">
+            <h2 class="text-3xl font-bold text-center mb-12 gradient-text">联系我们</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- 门店地址 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-blue-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-map-marker-alt text-blue-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">门店地址</h3>
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <h4 class="font-bold mb-1">北京旗舰店</h4>
+                            <p class="text-gray-600">北京市海淀区中关村科技园区8号楼1层</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold mb-1">上海体验中心</h4>
+                            <p class="text-gray-600">上海市浦东新区张江高科技园区18号3层</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold mb-1">深圳创新中心</h4>
+                            <p class="text-gray-600">深圳市南山区科技园23号2层</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-directions mr-2"></i> 查看地图
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 服务预约 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-orange-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-calendar-check text-orange-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">服务预约</h3>
+                    </div>
+                    
+                    <form class="space-y-4">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="service-type">服务类型</label>
+                            <select id="service-type" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>设备按需用</option>
+                                <option>设备租赁</option>
+                                <option>技术培训</option>
+                                <option>创意落地支持</option>
+                                <option>其他服务</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="appointment-date">预约日期</label>
+                            <input type="date" id="appointment-date" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="appointment-time">预约时间</label>
+                            <select id="appointment-time" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option>09:00 - 10:00</option>
+                                <option>10:00 - 11:00</option>
+                                <option>11:00 - 12:00</option>
+                                <option>14:00 - 15:00</option>
+                                <option>15:00 - 16:00</option>
+                                <option>16:00 - 17:00</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2" for="contact-phone">联系电话</label>
+                            <input type="tel" id="contact-phone" class="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        
+                        <button type="submit" class="w-full bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-paper-plane mr-2"></i> 提交预约
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- 咨询热线/在线客服 -->
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="bg-green-100 rounded-full p-3 mr-4">
+                            <i class="fas fa-headset text-green-600 text-xl"></i>
+                        </div>
+                        <h3 class="text-xl font-bold">咨询服务</h3>
+                    </div>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <h4 class="font-bold mb-2">咨询热线</h4>
+                            <div class="flex items-center">
+                                <i class="fas fa-phone-alt text-green-600 mr-3"></i>
+                                <a href="tel:4001234567" class="text-gray-800 hover:text-green-600">400-123-4567</a>
+                            </div>
+                            <p class="text-gray-600 text-sm mt-1">周一至周日 9:00-18:00</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold mb-2">在线客服</h4>
+                            <button class="flex items-center text-gray-800 hover:text-green-600 mb-2">
+                                <i class="fab fa-weixin text-green-600 mr-3"></i>
+                                <span>微信客服</span>
+                            </button>
+                            <button class="flex items-center text-gray-800 hover:text-green-600">
+                                <i class="fab fa-qq text-blue-600 mr-3"></i>
+                                <span>QQ客服</span>
+                            </button>
+                            <p class="text-gray-600 text-sm mt-1">周一至周五 9:00-18:00</p>
+                        </div>
+                        
+                        <div>
+                            <h4 class="font-bold mb-2">邮箱咨询</h4>
+                            <div class="flex items-center">
+                                <i class="fas fa-envelope text-blue-600 mr-3"></i>
+                                <a href="mailto:info@3dprint.com" class="text-gray-800 hover:text-blue-600">info@3dprint.com</a>
+                            </div>
+                            <p class="text-gray-600 text-sm mt-1">24小时内回复</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <button class="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-md transition duration-300 flex items-center justify-center">
+                            <i class="fas fa-comments mr-2"></i> 在线咨询
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 页脚 -->
+    <footer class="bg-gray-900 text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+                <!-- 关于我们 -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">关于我们</h3>
+                    <p class="text-gray-400 mb-4">3D打印生态平台致力于为用户提供设备共享、技术培训和创意落地等全方位服务，打造"服务+教育"双驱动的3D打印生态系统。</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                            <i class="fab fa-weixin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                            <i class="fab fa-weibo text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                            <i class="fab fa-qq text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">
+                            <i class="fab fa-tiktok text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 快速链接 -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">快速链接</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#home" class="text-gray-400 hover:text-white transition duration-300">首页</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-white transition duration-300">服务板块</a></li>
+                        <li><a href="#creative" class="text-gray-400 hover:text-white transition duration-300">创意生态</a></li>
+                        <li><a href="#about" class="text-gray-400 hover:text-white transition duration-300">关于我们</a></li>
+                        <li><a href="#contact" class="text-gray-400 hover:text-white transition duration-300">联系我们</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 服务项目 -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">服务项目</h3>
+                    <ul class="space-y-2">
+                        <li><a href="#services" class="text-gray-400 hover:text-white transition duration-300">设备按需用</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-white transition duration-300">设备租赁</a></li>
+                        <li><a href="#services" class="text-gray-400 hover:text-white transition duration-300">技术教培课程</a></li>
+                        <li><a href="#creative" class="text-gray-400 hover:text-white transition duration-300">创意落地支持</a></li>
+                        <li><a href="#creative" class="text-gray-400 hover:text-white transition duration-300">设计需求对接</a></li>
+                    </ul>
+                </div>
+                
+                <!-- 联系方式 -->
+                <div>
+                    <h3 class="text-xl font-bold mb-4">联系方式</h3>
+                    <ul class="space-y-2">
+                        <li class="flex items-center">
+                            <i class="fas fa-map-marker-alt mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">北京市海淀区中关村科技园区8号楼1层</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-phone-alt mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">400-123-4567</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-envelope mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">info@3dprint.com</span>
+                        </li>
+                        <li class="flex items-center">
+                            <i class="fas fa-clock mr-2 text-gray-400"></i>
+                            <span class="text-gray-400">周一至周日 9:00-18:00</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 pt-8">
+                <div class="flex flex-col md:flex-row justify-between items-center">
+                    <p class="text-gray-400 mb-4 md:mb-0">© 2023 3D打印生态平台 版权所有</p>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">隐私政策</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">服务条款</a>
+                        <a href="#" class="text-gray-400 hover:text-white transition duration-300">网站地图</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- 返回顶部按钮 -->
+    <button id="back-to-top" class="fixed bottom-8 right-8 bg-blue-600 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg opacity-0 invisible transition-all duration-300">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // 移动端菜单切换
+        document.getElementById('menu-toggle').addEventListener('click', function() {
+            const dropdown = document.getElementById('mobile-dropdown');
+            dropdown.classList.toggle('hidden');
+        });
+        
+        // 导航栏滚动效果
+        window.addEventListener('scroll', function() {
+            const nav = document.querySelector('nav');
+            if (window.scrollY > 50) {
+                nav.classList.add('shadow-lg');
+                nav.classList.remove('shadow-md');
+            } else {
+                nav.classList.remove('shadow-lg');
+                nav.classList.add('shadow-md');
+            }
+            
+            // 返回顶部按钮显示/隐藏
+            const backToTop = document.getElementById('back-to-top');
+            if (window.scrollY > 300) {
+                backToTop.classList.remove('opacity-0', 'invisible');
+                backToTop.classList.add('opacity-100', 'visible');
+            } else {
+                backToTop.classList.add('opacity-0', 'invisible');
+                backToTop.classList.remove('opacity-100', 'visible');
+            }
+            
+            // 滚动动画
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach(element => {
+                const elementTop = element.getBoundingClientRect().top;
+                const windowHeight = window.innerHeight;
+                if (elementTop < windowHeight - 100) {
+                    element.classList.add('visible');
+                }
+            });
+        });
+        
+        // 返回顶部按钮
+        document.getElementById('back-to-top').addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // 轮播图
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.carousel-item');
+        const indicators = document.querySelectorAll('.carousel-indicators button');
+        const totalSlides = slides.length;
+        
+        function showSlide(index) {
+            if (index >= totalSlides) {
+                currentSlide = 0;
+            } else if (index < 0) {
+                currentSlide = totalSlides - 1;
+            } else {
+                currentSlide = index;
+            }
+            
+            document.querySelector('.carousel-inner').style.transform = `translateX(-${currentSlide * 100}%)`;
+            
+            // 更新指示器
+            indicators.forEach((indicator, i) => {
+                if (i === currentSlide) {
+                    indicator.classList.add('bg-blue-600', 'opacity-100');
+                    indicator.classList.remove('bg-gray-300', 'opacity-50');
+                } else {
+                    indicator.classList.remove('bg-blue-600', 'opacity-100');
+                    indicator.classList.add('bg-gray-300', 'opacity-50');
+                }
+            });
+        }
+        
+        // 下一张
+        document.querySelector('.carousel-control-next').addEventListener('click', function() {
+            showSlide(currentSlide + 1);
+        });
+        
+        // 上一张
+        document.querySelector('.carousel-control-prev').addEventListener('click', function() {
+            showSlide(currentSlide - 1);
+        });
+        
+        // 点击指示器
+        indicators.forEach((indicator, i) => {
+            indicator.addEventListener('click', function() {
+                showSlide(i);
+            });
+        });
+        
+        // 自动轮播
+        setInterval(() => {
+            showSlide(currentSlide + 1);
+        }, 5000);
+        
+        // 3D模型展示
+        function initThreeJsModel() {
+            const container = document.getElementById('model-container');
+            
+            // 创建场景
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f0f0);
+            
+            // 创建相机
+            const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.z = 5;
+            
+            // 创建渲染器
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            container.appendChild(renderer.domElement);
+            
+            // 添加灯光
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+            
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+            
+            // 创建一个简单的3D打印模型（立方体）
+            const geometry = new THREE.BoxGeometry(2, 2, 2);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x1e88e5,
+                metalness: 0.3,
+                roughness: 0.4,
+                transparent: true,
+                opacity: 0.8
+            });
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+            
+            // 添加边缘线
+            const edges = new THREE.EdgesGeometry(geometry);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x0d47a1 }));
+            cube.add(line);
+            
+            // 动画循环
+            function animate() {
+                requestAnimationFrame(animate);
+                
+                cube.rotation.x += 0.01;
+                cube.rotation.y += 0.01;
+                
+                renderer.render(scene, camera);
+            }
+            
+            animate();
+            
+            // 响应窗口大小变化
+            window.addEventListener('resize', () => {
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+        
+        // 页面加载完成后初始化3D模型
+        window.addEventListener('load', initThreeJsModel);
+        
+        // 表单提交处理
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                // 显示加载状态
+                const submitButton = this.querySelector('button[type="submit"]');
+                const originalText = submitButton.innerHTML;
+                submitButton.innerHTML = '<div class="loader mx-auto"></div>';
+                submitButton.disabled = true;
+                
+                // 模拟表单提交
+                setTimeout(() => {
+                    submitButton.innerHTML = '<i class="fas fa-check mr-2"></i> 提交成功';
+                    
+                    // 重置表单
+                    setTimeout(() => {
+                        this.reset();
+                        submitButton.innerHTML = originalText;
+                        submitButton.disabled = false;
+                        
+                        // 显示成功消息
+                        alert('提交成功！我们将尽快与您联系。');
+                    }, 1500);
+                }, 1500);
+            });
+        });
+    </script>
+
+</body></html>
